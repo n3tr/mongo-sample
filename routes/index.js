@@ -18,7 +18,6 @@ router.post('/rooms', function(req, res, next) {
     }
 
     if (result) {
-      console.log("REDIS");
       return res.send(JSON.parse(result));
     }
 
@@ -58,22 +57,37 @@ router.post('/rooms/create', function(req, res) {
     product_id: product_id
   };
 
-  var update = {
-    $set: insertData
-  };
 
-  RoomCollection.findAndModify(
-    query, // query
-    [['_id','asc']],  // sort order
-    update, // replacement, replaces only the field "hi"
-    { upsert: true, new: true }, // options
-    function(err, object) {
-      if (err){
+  RoomCollection.findOne(query, function(err, room){
+    if (err) {
+      res.send({error: error.messages});
+    }
+
+    // Response room if found
+    if(room) {
+      return res.send(room);
+    }
+
+    RoomCollection.insertOne(insertData, function(insertErr, result){
+      if (insertErr){
         res.send({error: error.messages});
-      }else{
-        res.send(object);
       }
+      return res.send(insertData);
+    });
   });
+
+  // RoomCollection.findAndModify(
+  //   query, // query
+  //   [['_id','asc']],  // sort order
+  //   update, // replacement, replaces only the field "hi"
+  //   { upsert: true, new: true }, // options
+  //   function(err, object) {
+  //     if (err){
+  //       res.send({error: error.messages});
+  //     }else{
+  //       res.send(object);
+  //     }
+  // });
 
 });
 
